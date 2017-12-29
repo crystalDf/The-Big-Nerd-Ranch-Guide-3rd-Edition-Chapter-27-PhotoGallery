@@ -22,8 +22,10 @@ public class FlickrFetchr {
 
     private static final String API_KEY = "d68bdef910c8657f4cbb1332f196a6c3";
 
+    private static final String GET_RECENT_METHOD = "flickr.photos.getRecent";
+    private static final String SEARCH_METHOD = "flickr.photos.search";
+
     private static final String METHOD_KEY = "method";
-    private static final String METHOD_VALUE = "flickr.photos.getRecent";
     private static final String API_KEY_KEY = "api_key";
     private static final String API_KEY_VALUE = API_KEY;
     private static final String FORMAT_KEY = "format";
@@ -33,6 +35,17 @@ public class FlickrFetchr {
     private static final String EXTRAS_KEY = "extras";
     private static final String EXTRAS_VALUE = "url_s";
     private static final String PAGE_KEY = "page";
+
+    private static final String TEXT = "text";
+
+    private static final Uri ENDPOINT = Uri
+            .parse("https://api.flickr.com/services/rest/")
+            .buildUpon()
+            .appendQueryParameter(API_KEY_KEY, API_KEY_VALUE)
+            .appendQueryParameter(FORMAT_KEY, FORMAT_VALUE)
+            .appendQueryParameter(NO_JSON_CALL_BACK_KEY, NO_JSON_CALL_BACK_VALUE)
+            .appendQueryParameter(EXTRAS_KEY, EXTRAS_VALUE)
+            .build();
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
@@ -65,20 +78,33 @@ public class FlickrFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems(int page) {
+    public List<GalleryItem> getRecentPhotos(int page) {
+        String url = buildUrl(GET_RECENT_METHOD, page, null);
+        return downloadGalleryItems(url);
+    }
+
+    public List<GalleryItem> searchPhotos(int page, String query) {
+        String url = buildUrl(SEARCH_METHOD, page, query);
+        return downloadGalleryItems(url);
+    }
+
+    private String buildUrl(String method, int page, String query) {
+        Uri.Builder uriBuilder = ENDPOINT.buildUpon()
+                .appendQueryParameter(METHOD_KEY, method)
+                .appendQueryParameter(PAGE_KEY, page + "");
+
+        if (method.equals(SEARCH_METHOD)) {
+            uriBuilder.appendQueryParameter(TEXT, query);
+        }
+
+        return uriBuilder.build().toString();
+    }
+
+    private List<GalleryItem> downloadGalleryItems(String url) {
 
         List<GalleryItem> items = new ArrayList<>();
 
         try {
-            String url = Uri.parse("https://api.flickr.com/services/rest/")
-                    .buildUpon()
-                    .appendQueryParameter(METHOD_KEY, METHOD_VALUE)
-                    .appendQueryParameter(API_KEY_KEY, API_KEY_VALUE)
-                    .appendQueryParameter(FORMAT_KEY, FORMAT_VALUE)
-                    .appendQueryParameter(NO_JSON_CALL_BACK_KEY, NO_JSON_CALL_BACK_VALUE)
-                    .appendQueryParameter(EXTRAS_KEY, EXTRAS_VALUE)
-                    .appendQueryParameter(PAGE_KEY, page + "")
-                    .build().toString();
 
             String jsonString = getUrlString(url);
 
