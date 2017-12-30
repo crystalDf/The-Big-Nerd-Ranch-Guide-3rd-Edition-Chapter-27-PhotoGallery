@@ -39,9 +39,9 @@ public class PhotoGalleryFragment extends Fragment {
 
     private ProgressBar mProgressBar;
 
-    private int mCurrentPage = 1;
-    private int mFetchedPage = 0;
-    private int mCurrentPosition = 0;
+    private int mCurrentPage;
+    private int mFetchedPage;
+    private int mCurrentPosition;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
